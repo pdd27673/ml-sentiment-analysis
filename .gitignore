@@ -38,3 +38,5 @@ prd.txt
 
 */__pycache__/
 change_dates.sh
+
+venv/
