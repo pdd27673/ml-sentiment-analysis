@@ -27,3 +27,11 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+
+# add .claude, .cursor, .taskmaster to .gitignore
+.claude/
+.cursor/
+.taskmaster/
+
+CLAUDE.md
+prd.txt
