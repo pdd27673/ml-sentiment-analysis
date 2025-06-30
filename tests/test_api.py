@@ -144,3 +144,77 @@ class TestAnalyzeEndpoint:
         assert "detail" in data
         assert "Model prediction failed" in data["detail"]
         assert "Prediction failed" in data["detail"]
+
+
+class TestHealthEndpoint:
+    @patch('app.main.model_manager.get_model')
+    def test_health_check_model_loaded(self, mock_get_model, client):
+        """Test health check when model is loaded."""
+        mock_model = Mock()
+        mock_get_model.return_value = mock_model
+        
+        response = client.get("/api/v1/health")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
+        assert data["checks"]["model_loaded"] is True
+        assert data["checks"]["service"] == "healthy"
+
+    @patch('app.main.model_manager.get_model')
+    def test_health_check_model_not_loaded(self, mock_get_model, client):
+        """Test health check when model fails to load."""
+        mock_get_model.side_effect = Exception("Model loading failed")
+        
+        response = client.get("/api/v1/health")
+        
+        assert response.status_code == 503
+        data = response.json()
+        assert data["status"] == "unavailable"
+        assert data["reason"] == "Model not loaded"
+        assert data["checks"]["model_loaded"] is False
+        assert data["checks"]["service"] == "degraded"
+
+
+class TestMetricsEndpoint:
+    def test_metrics_endpoint_format(self, client):
+        """Test that metrics endpoint returns Prometheus format."""
+        response = client.get("/api/v1/metrics")
+        
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "text/plain; charset=utf-8"
+        
+        content = response.text
+        assert "app_requests_total" in content
+        assert "app_errors_total" in content
+        assert "app_request_duration_ms" in content
+        assert "app_model_loaded" in content
+        
+        # Check Prometheus format structure
+        assert "# HELP app_requests_total" in content
+        assert "# TYPE app_requests_total counter" in content
+
+    def test_metrics_count_requests(self, client):
+        """Test that metrics correctly count requests."""
+        # Make the metrics request first to get baseline
+        response = client.get("/api/v1/metrics")
+        initial_content = response.text
+        
+        # Extract initial count (this is a simplified extraction)
+        import re
+        match = re.search(r'app_requests_total (\d+)', initial_content)
+        initial_count = int(match.group(1)) if match else 0
+        
+        # Make additional requests
+        client.get("/")
+        client.get("/api/v1/health")
+        
+        # Check updated metrics
+        response = client.get("/api/v1/metrics")
+        updated_content = response.text
+        
+        match = re.search(r'app_requests_total (\d+)', updated_content)
+        updated_count = int(match.group(1)) if match else 0
+        
+        # Should have increased by at least 3 (2 new requests + the metrics request)
+        assert updated_count >= initial_count + 3
