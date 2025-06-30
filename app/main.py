@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 from .config import settings
 from .schemas import SentimentRequest, SentimentResponse
 from .models import ModelManager
@@ -24,6 +25,9 @@ app.state.model_loaded = False
 # Add middleware
 app.middleware("http")(log_requests)
 app.add_middleware(MetricsMiddleware, metrics_collector=metrics_collector)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.exception_handler(MLServiceError)

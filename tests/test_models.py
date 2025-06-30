@@ -25,8 +25,7 @@ class TestModelManager:
         
         mock_pipeline.assert_called_once_with(
             "sentiment-analysis",
-            model=manager.model_name,
-            cache_dir=manager.cache_dir
+            model=manager.model_name
         )
         assert manager.model == mock_model
 

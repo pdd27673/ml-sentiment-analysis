@@ -16,8 +16,7 @@ class ModelManager:
         """Private method to load the sentiment analysis model."""
         self.model = pipeline(
             "sentiment-analysis",
-            model=self.model_name,
-            cache_dir=self.cache_dir
+            model=self.model_name
         )
     
     async def get_model(self):
