@@ -35,3 +35,6 @@ node_modules/
 
 CLAUDE.md
 prd.txt
+
+*/__pycache__/
+change_dates.sh

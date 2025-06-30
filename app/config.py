@@ -1,4 +1,5 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from typing import Optional
 
 
@@ -14,9 +15,14 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    # Optional API keys (from environment)
+    google_api_key: Optional[str] = None
+    
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"  # Ignore extra environment variables
+    )
 
 
 settings = Settings()
